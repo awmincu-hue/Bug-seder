@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Sender</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .app-container { width: 100%; max-width: 400px; background: #d9382e; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 15px; color: white; }
+        .header-section { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+        .header-icon { background: rgba(255,255,255,0.2); padding: 5px; border-radius: 8px; display: flex; }
+        .input-container { background: white; border-radius: 10px; padding: 12px 15px; display: flex; align-items: center; gap: 10px; border: 2px solid transparent; transition: all 0.3s; }
+        .input-container:focus-within { border-color: #ffcc00; box-shadow: 0 0 10px rgba(255,204,0,0.4); }
+        .input-container input { border: none; outline: none; width: 100%; font-size: 14px; color: #333; }
+        .section-title { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-top: 5px; }
+        .badge { background: white; color: #333; font-size: 10px; padding: 4px 8px; border-radius: 20px; font-weight: normal; }
+        .bug-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: white; border-radius: 15px; padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; justify-content: space-between; height: 150px; color: #333; border: 3px solid transparent; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card.selected { border-color: #ffcc00; }
+        .card-yellow { background: #ffcc00; }
+        .card-top { display: flex; justify-content: space-between; align-items: center; }
+        .icon-circle { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #333; display: flex; justify-content: center; align-items: center; font-size: 16px; }
+        .card-yellow .icon-circle { border-color: #d9382e; color: #d9382e; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; background: #4CAF50; }
+        .card-bottom h3 { font-size: 16px; font-weight: 800; text-transform: uppercase; }
+        .tag-black { background: #222; color: white; font-size: 10px; padding: 4px 8px; border-radius: 5px; align-self: flex-start; font-weight: bold; }
+        .tag-gray { background: #e0e0e0; color: #333; font-size: 10px; padding: 4px 8px; border-radius: 5px; align-self: flex-start; font-weight: bold; }
+        .sender-section { background: white; border-radius: 15px; padding: 15px; color: #333; }
+        .sender-title { font-size: 13px; font-weight: bold; color: #d9382e; text-transform: uppercase; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .sender-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .sender-card { border: 1px solid #ddd; border-radius: 10px; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; cursor: pointer; transition: 0.3s; }
+        .sender-card.active { border: 2px solid #d9382e; background: #fff5f5; }
+        .sender-card h4 { font-size: 14px; }
+        .sender-card p { font-size: 10px; color: #888; }
+        .submit-btn { background: #a0241b; color: white; border: none; border-radius: 10px; padding: 18px; font-size: 16px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; display: flex; justify-content: center; align-items: center; gap: 10px; cursor: pointer; transition: 0.2s; }
+        .submit-btn:hover { background: #8c1e16; }
+        .submit-btn:active { transform: scale(0.98); }
+        .submit-btn:disabled { background: #888; cursor: not-allowed; }
+        .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header-section">
+            <div class="header-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <span>Nomor Target</span>
+        </div>
+
+        <div class="input-container">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+            <input type="text" id="targetInput" placeholder="628xxxxxxxxxx">
+        </div>
+
+        <div class="section-title">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Pilih Bug</span>
+            </div>
+            <div class="badge">⚙️ API Ready</div>
+        </div>
+
+        <div class="bug-cards">
+            <div class="card card-yellow selected" onclick="selectBug(this, 'delay')">
+                <div class="card-top">
+                    <div class="icon-circle">✕</div>
+                    <div class="status-dot"></div>
+                </div>
+                <div class="card-bottom">
+                    <h3>DELAY</h3>
+                    <span class="tag-black">capm</span>
+                </div>
+            </div>
+            <div class="card" onclick="selectBug(this, 'fc')">
+                <div class="card-top"><div class="icon-circle">✕</div></div>
+                <div class="card-bottom">
+                    <h3>FC ANDROID</h3>
+                    <span class="tag-gray">cpm</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sender-section">
+            <div class="sender-title"><span>Pilih Sender</span><span>⚙️</span></div>
+            <div class="sender-cards">
+                <div class="sender-card active" onclick="selectSender(this, 'private')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#d9382e" stroke="#d9382e" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <h4>Private</h4><p>4 Device</p>
+                </div>
+                <div class="sender-card" onclick="selectSender(this, 'global')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <h4>Global</h4>
+                </div>
+            </div>
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitBug()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            <span id="btnText">KIRIM BUG</span>
+            <div class="spinner" id="spinner"></div>
+        </button>
+    </div>
+
+    <script>
+        let selectedBugType = 'delay';
+        let selectedSenderType = 'private';
+
+        // Pakai relative URL, biar otomatis ke server yang sama
+        const API_URL = '/api/send-bug';
+
+        function selectBug(element, type) {
+            document.querySelectorAll('.bug-cards .card').forEach(card => {
+                card.classList.remove('selected');
+                if (!card.classList.contains('card-yellow')) card.style.backgroundColor = 'white';
+            });
+            element.classList.add('selected');
+            if (!element.classList.contains('card-yellow')) element.style.backgroundColor = '#ffcc00';
+            selectedBugType = type;
+        }
+
+        function selectSender(element, type) {
+            document.querySelectorAll('.sender-card').forEach(card => {
+                card.classList.remove('active');
+                const svg = card.querySelector('svg');
+                if (svg) { svg.setAttribute('stroke', '#888'); svg.setAttribute('fill', 'none'); }
+            });
+            element.classList.add('active');
+            const svg = element.querySelector('svg');
+            if (svg) { svg.setAttribute('stroke', '#d9382e'); svg.setAttribute('fill', '#d9382e'); }
+            selectedSenderType = type;
+        }
+
+        async function submitBug() {
+            const targetInput = document.getElementById('targetInput').value.trim();
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
+
+            if (!targetInput) {
+                alert('Masukkan nomor target dulu!');
+                return;
+            }
+
+            if (!/^[0-9]{10,15}$/.test(targetInput)) {
+                alert('Format nomor salah! Gunakan format 628xxxx (tanpa +, tanpa spasi)');
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            spinner.style.display = 'block';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        target: targetInput,
+                        bug_type: selectedBugType,
+                        sender: selectedSenderType
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    alert(`✅ BERHASIL!\n\nTarget: ${targetInput}\nTipe: ${selectedBugType.toUpperCase()}\nSender: ${selectedSenderType.toUpperCase()}\n\nPesan: ${data.message}`);
+                    document.getElementById('targetInput').value = '';
+                } else {
+                    throw new Error(data.message || 'Gagal mengirim.');
+                }
+            } catch (error) {
+                alert(`❌ ERROR:\n${error.message}\n\nPastikan server sudah jalan dan WhatsApp sudah terhubung!`);
+            } finally {
+                btn.disabled = false;
+                btnText.style.display = 'block';
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+      </html>
